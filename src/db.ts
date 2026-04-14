@@ -42,6 +42,8 @@ const insertStmt = db.prepare(
 
 const selectByIdStmt = db.prepare('SELECT * FROM checks WHERE id = ?');
 
+const selectAllStmt = db.prepare('SELECT * FROM checks ORDER BY checked_at DESC');
+
 export function insertCheck(input: InsertCheckInput): CheckRow {
   const result = insertStmt.run(
     input.url,
@@ -50,4 +52,12 @@ export function insertCheck(input: InsertCheckInput): CheckRow {
     input.error
   );
   return selectByIdStmt.get(result.lastInsertRowid) as CheckRow;
+}
+
+export function getAllChecks(): CheckRow[] {
+  return selectAllStmt.all() as CheckRow[];
+}
+
+export function getCheckById(id: number): CheckRow | null {
+  return (selectByIdStmt.get(id) as CheckRow | undefined) ?? null;
 }
