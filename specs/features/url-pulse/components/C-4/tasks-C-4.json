@@ -5,7 +5,7 @@
   "tasks": [
     {
       "id": "C4-TASK-1",
-      "status": "todo",
+      "status": "done",
       "blocker_reason": null,
       "title": "Implement database initialisation: open SQLite, enable WAL, create schema",
       "description": "Create src/db.ts. On module load: resolve DB_PATH = process.env.DATABASE_PATH ?? './data/checks.db', call fs.mkdirSync(path.dirname(DB_PATH), { recursive: true }) to ensure the directory exists, open the database with new Database(DB_PATH), run db.pragma('journal_mode = WAL'), and execute CREATE TABLE IF NOT EXISTS checks (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, status_code INTEGER, response_time_ms REAL NOT NULL, error TEXT, checked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))). No functions exported yet.",
@@ -33,7 +33,7 @@
     },
     {
       "id": "C4-TASK-2",
-      "status": "todo",
+      "status": "in_progress",
       "blocker_reason": null,
       "title": "Implement and export insertCheck function",
       "description": "In src/db.ts, prepare a reusable INSERT statement at module load time: INSERT INTO checks (url, status_code, response_time_ms, error) VALUES (?, ?, ?, ?). Export insertCheck(input: InsertCheckInput): CheckRow that runs the prepared statement, reads stmt.lastInsertRowid, fetches the full row by id, and returns it as a CheckRow. The function must correctly bind null for status_code and error when those fields are null.",
