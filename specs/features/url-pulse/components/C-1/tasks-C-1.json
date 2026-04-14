@@ -33,7 +33,7 @@
     },
     {
       "id": "C1-TASK-2",
-      "status": "in_progress",
+      "status": "done",
       "blocker_reason": null,
       "title": "Implement Express app factory with middleware and error handlers",
       "description": "Create src/app.ts that constructs and exports the Express app. Register express.json() middleware first. Add a catch-all 404 handler that responds with { error: 'Not Found' } and HTTP 404. Add a global 4-argument error-handling middleware that reads err.status (defaulting to 500) and responds with { error: err.message }. Do NOT call app.listen() in this file — export the app instance only.",
@@ -61,7 +61,7 @@
     },
     {
       "id": "C1-TASK-3",
-      "status": "todo",
+      "status": "in_progress",
       "blocker_reason": null,
       "title": "Implement server entry point with port binding and startup log",
       "description": "Create src/index.ts that imports the app from src/app.ts, reads PORT from process.env.PORT (parsing as integer, defaulting to 3000 if absent or non-integer), calls app.listen(port), and logs 'url-pulse listening on port <port>' to stdout. This file must NOT export anything — it is the process entry point only.",
