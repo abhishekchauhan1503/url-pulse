@@ -1,0 +1,81 @@
+{
+  "workflow": "component_spec",
+  "problem_id": "url-pulse",
+  "component_id": "C-4",
+  "component_name": "Database Layer",
+  "scope_of_spec": "SQLite database initialisation via better-sqlite3, schema creation, and three synchronous data-access functions: insertCheck, getAllChecks, getCheckById.",
+  "overview": "The Database Layer is the sole component responsible for all SQLite interactions. It opens (or creates) the database file at startup using better-sqlite3, runs a CREATE TABLE IF NOT EXISTS statement to establish the checks schema, and exports three synchronous functions used by C-2 and C-3. No ORM is used. The database file path is resolved from the DATABASE_PATH environment variable, defaulting to ./data/checks.db. This component is a pure data-access module with no HTTP or Express coupling.",
+  "responsibilities": [
+    "Resolve the database file path from process.env.DATABASE_PATH, defaulting to './data/checks.db'.",
+    "Ensure the parent directory of the database file exists before opening it (create if absent).",
+    "Open the SQLite database using better-sqlite3 with WAL journal mode for safe concurrent reads.",
+    "Execute CREATE TABLE IF NOT EXISTS checks on module load to guarantee schema exists.",
+    "Export insertCheck(record): synchronously insert a new check record and return the full inserted row including auto-generated id and checked_at.",
+    "Export getAllChecks(): synchronously return all rows ordered by checked_at DESC.",
+    "Export getCheckById(id): synchronously return the row matching the given integer id, or null if not found."
+  ],
+  "interfaces": {
+    "apis": [],
+    "events": [],
+    "data_models": [
+      {
+        "name": "checks table schema",
+        "fields": {
+          "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+          "url": "TEXT NOT NULL",
+          "status_code": "INTEGER — nullable, stores HTTP status code or NULL on network failure",
+          "response_time_ms": "REAL NOT NULL — stored as floating-point milliseconds",
+          "error": "TEXT — nullable, stores error message string or NULL on success",
+          "checked_at": "TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) — ISO-8601 UTC timestamp set by SQLite at insert time"
+        }
+      },
+      {
+        "name": "InsertCheckInput",
+        "fields": {
+          "url": "string",
+          "status_code": "number | null",
+          "response_time_ms": "number",
+          "error": "string | null"
+        }
+      },
+      {
+        "name": "CheckRow",
+        "fields": {
+          "id": "number",
+          "url": "string",
+          "status_code": "number | null",
+          "response_time_ms": "number",
+          "error": "string | null",
+          "checked_at": "string (ISO-8601 UTC)"
+        }
+      }
+    ]
+  },
+  "behavior": [
+    "On module import: resolve DB_PATH = process.env.DATABASE_PATH ?? './data/checks.db'.",
+    "On module import: call fs.mkdirSync(path.dirname(DB_PATH), { recursive: true }) to ensure the directory exists.",
+    "On module import: open the database with new Database(DB_PATH) and enable WAL mode: db.pragma('journal_mode = WAL').",
+    "On module import: execute the CREATE TABLE IF NOT EXISTS statement to create the checks table.",
+    "insertCheck(input: InsertCheckInput): use a prepared INSERT statement to insert the row. Fetch the inserted row by lastInsertRowid and return it as a CheckRow object.",
+    "getAllChecks(): use a prepared SELECT * FROM checks ORDER BY checked_at DESC statement. Return all rows as CheckRow[].",
+    "getCheckById(id: number): use a prepared SELECT * FROM checks WHERE id = ? statement. Return the single row as CheckRow, or null if no row is found."
+  ],
+  "edge_cases": [
+    "DATABASE_PATH environment variable points to a directory that does not exist: mkdirSync with recursive:true must create it before better-sqlite3 attempts to open the file.",
+    "insertCheck is called with status_code=null and error set: SQLite must store NULL for the integer column without throwing. The prepared statement must bind null correctly.",
+    "getCheckById is called with an id that was never inserted: better-sqlite3 stmt.get() returns undefined for no results. The layer must normalise this to null before returning.",
+    "getAllChecks is called when the table is empty: returns an empty array [], not null or undefined.",
+    "Two concurrent calls to insertCheck in the same process: better-sqlite3 is synchronous and single-threaded within Node.js; no locking issue occurs. WAL mode allows concurrent reads alongside the write."
+  ],
+  "constraints_and_considerations": [
+    "better-sqlite3 API is synchronous — no Promises or callbacks are needed or permitted in this component.",
+    "All prepared statements should be created once at module load time (not inside function bodies) to avoid repeated compilation overhead.",
+    "The checked_at column uses a SQLite DEFAULT expression (strftime) so the timestamp is set by the database engine, not by application code. This ensures consistency.",
+    "Design decision (resolved): Database file path defaults to './data/checks.db', overridable via DATABASE_PATH env var. Justification: zero-config for local development; env var allows CI and container overrides without code change.",
+    "Design decision (resolved): WAL journal mode is enabled. Justification: WAL allows concurrent readers while a write is in progress; no downside for a single-writer single-process app.",
+    "The module must not import anything from Express, C-1, C-2, or C-3 — it is a pure data layer.",
+    "TypeScript strict mode: better-sqlite3 types must be correctly applied; all return types must be explicitly declared."
+  ],
+  "related_requirements": ["FR-2", "FR-3", "NFR-2", "C-3", "C-6"],
+  "spec_open_questions": []
+}

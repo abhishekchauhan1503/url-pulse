@@ -1,0 +1,118 @@
+{
+  "workflow": "tasks_from_spec",
+  "problem_id": "url-pulse",
+  "component_id": "C-1",
+  "tasks": [
+    {
+      "id": "C1-TASK-1",
+      "status": "todo",
+      "blocker_reason": null,
+      "title": "Initialise Node.js + TypeScript project with Express",
+      "description": "Create package.json with name url-pulse, scripts (build, start, dev), and dependencies: express, better-sqlite3. Create tsconfig.json with strict:true, target ES2022, module CommonJS, outDir dist, rootDir src. Install all dependencies. The project must compile with tsc --noEmit with zero errors on an empty src/index.ts stub.",
+      "area": "infra",
+      "priority": "P0",
+      "related_requirements": ["NFR-4", "C-1", "C-2", "C-3"],
+      "related_spec_sections": ["constraints_and_considerations[4]"],
+      "dependencies": [],
+      "verification_commands": [
+        "npm install --no-fund --no-audit --loglevel=error",
+        "npx tsc --noEmit"
+      ],
+      "done_criteria": [
+        "package.json exists with express and better-sqlite3 in dependencies",
+        "tsconfig.json exists with strict:true",
+        "npm install completes without errors",
+        "tsc --noEmit produces zero errors",
+        "Build/compile succeeds",
+        "Verification commands pass",
+        "Task artifacts updated",
+        "Changes committed with meaningful message",
+        "Working tree clean"
+      ],
+      "commit_message_template": "C1-TASK-1: initialise TypeScript + Express project scaffold"
+    },
+    {
+      "id": "C1-TASK-2",
+      "status": "todo",
+      "blocker_reason": null,
+      "title": "Implement Express app factory with middleware and error handlers",
+      "description": "Create src/app.ts that constructs and exports the Express app. Register express.json() middleware first. Add a catch-all 404 handler that responds with { error: 'Not Found' } and HTTP 404. Add a global 4-argument error-handling middleware that reads err.status (defaulting to 500) and responds with { error: err.message }. Do NOT call app.listen() in this file — export the app instance only.",
+      "area": "backend",
+      "priority": "P0",
+      "related_requirements": ["FR-1", "FR-2", "FR-3", "FR-4", "NFR-4"],
+      "related_spec_sections": ["behavior[0]", "behavior[1]", "behavior[4]", "behavior[5]", "behavior[8]", "edge_cases[1]", "edge_cases[2]", "edge_cases[3]"],
+      "dependencies": ["C1-TASK-1"],
+      "verification_commands": [
+        "npx tsc --noEmit"
+      ],
+      "done_criteria": [
+        "src/app.ts exports the Express app instance",
+        "express.json() is the first registered middleware",
+        "404 handler responds with { error: 'Not Found' } and HTTP 404",
+        "Global error handler (4 args) formats errors as { error: err.message } with err.status ?? 500",
+        "app.listen() is NOT called in app.ts",
+        "Build/compile succeeds",
+        "Verification commands pass",
+        "Task artifacts updated",
+        "Changes committed with meaningful message",
+        "Working tree clean"
+      ],
+      "commit_message_template": "C1-TASK-2: implement Express app with JSON middleware and error handlers"
+    },
+    {
+      "id": "C1-TASK-3",
+      "status": "todo",
+      "blocker_reason": null,
+      "title": "Implement server entry point with port binding and startup log",
+      "description": "Create src/index.ts that imports the app from src/app.ts, reads PORT from process.env.PORT (parsing as integer, defaulting to 3000 if absent or non-integer), calls app.listen(port), and logs 'url-pulse listening on port <port>' to stdout. This file must NOT export anything — it is the process entry point only.",
+      "area": "backend",
+      "priority": "P0",
+      "related_requirements": ["NFR-3", "NFR-4", "C-1"],
+      "related_spec_sections": ["behavior[6]", "behavior[7]", "edge_cases[0]", "constraints_and_considerations[1]"],
+      "dependencies": ["C1-TASK-2"],
+      "verification_commands": [
+        "npx tsc --noEmit",
+        "node -e \"process.env.PORT='abc'; require('./dist/index.js')\" 2>&1 | grep 'listening on port 3000' && echo OK || echo FAIL"
+      ],
+      "done_criteria": [
+        "src/index.ts reads PORT env var with parseInt fallback to 3000",
+        "Invalid PORT value (non-integer) causes fallback to 3000 without crash",
+        "app.listen(port) is called",
+        "Startup message 'url-pulse listening on port <port>' is logged to stdout",
+        "src/index.ts exports nothing",
+        "Build/compile succeeds",
+        "Verification commands pass",
+        "Task artifacts updated",
+        "Changes committed with meaningful message",
+        "Working tree clean"
+      ],
+      "commit_message_template": "C1-TASK-3: implement server entry point with PORT env var and startup log"
+    },
+    {
+      "id": "C1-TASK-4",
+      "status": "todo",
+      "blocker_reason": null,
+      "title": "Mount Check and History routers in app.ts",
+      "description": "Once C-2 and C-3 routers exist, import them in src/app.ts and register them with app.use(). The Check Router handles POST /check and the History Router handles GET /history and GET /history/:id. This task should be executed after C2-TASK-* and C3-TASK-* are complete and their router files exist.",
+      "area": "backend",
+      "priority": "P1",
+      "related_requirements": ["FR-1", "FR-2", "FR-3"],
+      "related_spec_sections": ["behavior[2]", "behavior[3]", "interfaces.apis[0]", "interfaces.apis[1]", "interfaces.apis[2]"],
+      "dependencies": ["C1-TASK-2"],
+      "verification_commands": [
+        "npx tsc --noEmit"
+      ],
+      "done_criteria": [
+        "checkRouter is imported and mounted via app.use() in src/app.ts",
+        "historyRouter is imported and mounted via app.use() in src/app.ts",
+        "404 handler remains registered AFTER route mounts",
+        "Build/compile succeeds",
+        "Verification commands pass",
+        "Task artifacts updated",
+        "Changes committed with meaningful message",
+        "Working tree clean"
+      ],
+      "commit_message_template": "C1-TASK-4: mount check and history routers in Express app"
+    }
+  ]
+}

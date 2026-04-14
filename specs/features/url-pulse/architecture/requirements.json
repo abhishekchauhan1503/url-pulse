@@ -1,0 +1,88 @@
+{
+  "workflow": "requirements",
+  "problem_id": "url-pulse",
+  "problem_summary": "url-pulse is a lightweight URL health-check REST API built with Node.js, TypeScript, Express, and better-sqlite3. It allows callers to submit a URL for an on-demand HTTP check that records the HTTP status code and response time in milliseconds. All check results are persisted to a local SQLite database and can be retrieved either as a full history list or as a single record by ID. The system requires no authentication and is intentionally minimal in scope.",
+  "original_user_prompt": "A lightweight URL health check REST API. POST /check — accepts a URL, returns HTTP status code and response time in ms. GET /history — returns list of recent checks. GET /history/:id — returns details for a specific check. Stack: Node.js + TypeScript + Express + better-sqlite3. No auth. Keep it simple.",
+  "context_notes": "No authentication or authorization is required. The API is intended for local or internal use. Persistence must use better-sqlite3 (synchronous SQLite bindings for Node.js). Response time must reflect actual network round-trip time measured with a high-resolution timer (e.g., process.hrtime or Date.now). No rate limiting, pagination, or background scheduling is in scope for this iteration.",
+  "functional_requirements": [
+    {
+      "id": "FR-1",
+      "text": "The system must expose a POST /check endpoint that accepts a JSON body containing a `url` field, performs an HTTP GET request to that URL, measures the elapsed time in milliseconds, persists the result, and returns a JSON response containing the HTTP status code and response time.",
+      "priority": "MUST"
+    },
+    {
+      "id": "FR-2",
+      "text": "The system must expose a GET /history endpoint that returns a JSON array of all stored check records, each containing at minimum: id, url, status_code, response_time_ms, and checked_at timestamp.",
+      "priority": "MUST"
+    },
+    {
+      "id": "FR-3",
+      "text": "The system must expose a GET /history/:id endpoint that returns the full JSON record for the check identified by the given integer id, or a 404 response if no such record exists.",
+      "priority": "MUST"
+    },
+    {
+      "id": "FR-4",
+      "text": "The POST /check endpoint must return a 400 error response when the request body is missing the `url` field or when the provided value is not a valid URL.",
+      "priority": "MUST"
+    },
+    {
+      "id": "FR-5",
+      "text": "When the target URL is unreachable or the HTTP request fails (network error, timeout), the system should persist the failure with a null or 0 status code and a meaningful error message, and return a 200 response describing the failure rather than crashing.",
+      "priority": "SHOULD"
+    }
+  ],
+  "non_functional_requirements": [
+    {
+      "id": "NFR-1",
+      "text": "Response time measurements must reflect wall-clock elapsed time with millisecond precision using process.hrtime.bigint() or equivalent high-resolution timer.",
+      "priority": "MUST"
+    },
+    {
+      "id": "NFR-2",
+      "text": "All check data must be persisted synchronously to a local SQLite database via better-sqlite3 before the POST /check response is returned.",
+      "priority": "MUST"
+    },
+    {
+      "id": "NFR-3",
+      "text": "The API server should start and be ready to handle requests within 2 seconds on a standard development machine.",
+      "priority": "SHOULD"
+    },
+    {
+      "id": "NFR-4",
+      "text": "The codebase must be written in TypeScript with strict mode enabled and compile without errors.",
+      "priority": "MUST"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "C-1",
+      "text": "Implementation language: Node.js with TypeScript."
+    },
+    {
+      "id": "C-2",
+      "text": "HTTP framework: Express."
+    },
+    {
+      "id": "C-3",
+      "text": "Database: better-sqlite3 (SQLite, synchronous API). No ORM."
+    },
+    {
+      "id": "C-4",
+      "text": "No authentication or authorization of any kind."
+    },
+    {
+      "id": "C-5",
+      "text": "No pagination, rate limiting, or background scheduling in scope."
+    },
+    {
+      "id": "C-6",
+      "text": "No external services or cloud dependencies; all state is local."
+    }
+  ],
+  "open_questions": [
+    "[DESIGN_DECISION] Should the SQLite database file path be hardcoded (e.g., ./data/checks.db) or configurable via an environment variable?",
+    "[DESIGN_DECISION] Should POST /check follow redirects when performing the HTTP GET, and if so, what is the maximum redirect depth?",
+    "[DESIGN_DECISION] Should a configurable timeout be applied to outbound HTTP requests in POST /check, and what should the default be?",
+    "[CLARIFICATION] Is there a requirement to limit or cap the number of stored history records, or is unbounded growth acceptable for this iteration?"
+  ]
+}

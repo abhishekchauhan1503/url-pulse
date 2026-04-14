@@ -1,0 +1,100 @@
+{
+  "workflow": "component_spec",
+  "problem_id": "url-pulse",
+  "component_id": "C-1",
+  "component_name": "HTTP Server",
+  "scope_of_spec": "Express application bootstrap: middleware registration, route mounting, error handling, and server startup. Does not contain business logic.",
+  "overview": "The HTTP Server component is the entry point of the url-pulse process. It creates and configures an Express application, registers JSON body-parsing middleware, mounts the Check Handler routes (POST /check) and History Handler routes (GET /history, GET /history/:id), registers a global error-handling middleware, and binds the server to a TCP port derived from the PORT environment variable (default 3000). This component is thin by design — it wires together other components but contains no business logic.",
+  "responsibilities": [
+    "Create the Express app instance.",
+    "Register express.json() middleware for JSON request body parsing.",
+    "Import and mount the Check Handler router at the root path.",
+    "Import and mount the History Handler router at the root path.",
+    "Register a catch-all 404 handler for unrecognised routes.",
+    "Register a global Express error-handling middleware (4-argument signature) that formats error responses as JSON.",
+    "Read PORT from process.env (default: 3000) and start the HTTP server.",
+    "Export the Express app instance for use in integration tests without starting the server."
+  ],
+  "interfaces": {
+    "apis": [
+      {
+        "name": "POST /check",
+        "description": "Delegated entirely to C-2 Check Handler router. Mounted by this component.",
+        "method": "POST",
+        "path": "/check",
+        "request": {
+          "query_params": [],
+          "headers": ["Content-Type: application/json"],
+          "body_schema": "{ url: string }"
+        },
+        "response": {
+          "status_codes": [200, 400, 500],
+          "body_schema": "Delegated to C-2"
+        },
+        "related_requirements": ["FR-1", "FR-4"]
+      },
+      {
+        "name": "GET /history",
+        "description": "Delegated entirely to C-3 History Handler router. Mounted by this component.",
+        "method": "GET",
+        "path": "/history",
+        "request": {
+          "query_params": [],
+          "headers": [],
+          "body_schema": null
+        },
+        "response": {
+          "status_codes": [200, 500],
+          "body_schema": "Delegated to C-3"
+        },
+        "related_requirements": ["FR-2"]
+      },
+      {
+        "name": "GET /history/:id",
+        "description": "Delegated entirely to C-3 History Handler router. Mounted by this component.",
+        "method": "GET",
+        "path": "/history/:id",
+        "request": {
+          "query_params": [],
+          "headers": [],
+          "body_schema": null
+        },
+        "response": {
+          "status_codes": [200, 400, 404, 500],
+          "body_schema": "Delegated to C-3"
+        },
+        "related_requirements": ["FR-3"]
+      }
+    ],
+    "events": [],
+    "data_models": []
+  },
+  "behavior": [
+    "On process start, instantiate the Express app.",
+    "Register express.json() as the first middleware so all routes receive parsed JSON bodies.",
+    "Import the Check Handler Express Router (from C-2) and call app.use(checkRouter).",
+    "Import the History Handler Express Router (from C-3) and call app.use(historyRouter).",
+    "Register a 404 handler after all routes: respond with { error: 'Not Found' } and status 404.",
+    "Register a global error handler (err, req, res, next) that responds with { error: err.message } and status err.status ?? 500.",
+    "Read PORT from process.env.PORT; if absent or non-integer, default to 3000.",
+    "Call app.listen(port) and log a single startup message to stdout: 'url-pulse listening on port <port>'.",
+    "Export the Express app instance so integration tests can call supertest(app) without starting the server."
+  ],
+  "edge_cases": [
+    "PORT environment variable is set to a non-integer string (e.g., 'abc'): the server must fall back to port 3000 and not crash.",
+    "A route handler throws a synchronous error: the global error handler must catch it and return a JSON error response with status 500, not crash the process.",
+    "A request arrives for a path that does not match any registered route (e.g., GET /ping): the 404 handler must respond with { error: 'Not Found' } and HTTP 404.",
+    "express.json() receives a body with invalid JSON syntax: Express automatically returns HTTP 400 with a SyntaxError; the global error handler should format this as { error: '<message>' } with status 400."
+  ],
+  "constraints_and_considerations": [
+    "This component must contain zero business logic — it is a wiring layer only.",
+    "The app instance must be exported separately from the listen() call to support test isolation.",
+    "No authentication or authorization middleware is registered (C-4 NFR).",
+    "TypeScript strict mode must be enabled; all Express handler signatures must be correctly typed.",
+    "The server must be ready to accept connections within 2 seconds of process start on a standard development machine (NFR-3).",
+    "Design decision (resolved): PORT defaults to 3000, overridable via process.env.PORT. Justification: conventional Express default; zero configuration for local development.",
+    "Design decision (resolved): express.json() is used without a size limit for this iteration. A limit can be added later without breaking changes."
+  ],
+  "related_requirements": ["FR-1", "FR-2", "FR-3", "FR-4", "NFR-3", "NFR-4", "C-1", "C-2"],
+  "spec_open_questions": []
+}

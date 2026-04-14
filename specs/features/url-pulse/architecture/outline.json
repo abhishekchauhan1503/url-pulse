@@ -1,0 +1,99 @@
+{
+  "workflow": "architecture_outline",
+  "problem_id": "url-pulse",
+  "architecture_summary": "url-pulse is a single-process Express HTTP server backed by a local SQLite database. Incoming requests are routed to thin route handlers that delegate to a Check Service (for POST /check) or a History Service (for GET /history*). A shared Database layer encapsulates all SQLite access via better-sqlite3. There are no background processes, queues, or external services.",
+  "components": [
+    {
+      "id": "C-1",
+      "name": "HTTP Server",
+      "purpose": "Bootstrap the Express application, register middleware (JSON body parsing, error handling), mount all routes, and start listening on a configured port.",
+      "responsibilities": [
+        "Initialize the Express app instance.",
+        "Register JSON body-parser middleware.",
+        "Mount route definitions from Check and History handlers.",
+        "Register a global error-handling middleware.",
+        "Start the HTTP server and bind to the configured port."
+      ],
+      "related_requirements": ["FR-1", "FR-2", "FR-3", "FR-4", "NFR-3", "NFR-4", "C-1", "C-2"]
+    },
+    {
+      "id": "C-2",
+      "name": "Check Handler",
+      "purpose": "Handle POST /check: validate the incoming URL, perform an outbound HTTP GET with high-resolution timing, persist the result via the Database layer, and return the status code and response time to the caller.",
+      "responsibilities": [
+        "Validate that the request body contains a non-empty, well-formed URL.",
+        "Record a start timestamp using a high-resolution timer.",
+        "Perform an outbound HTTP GET request to the provided URL.",
+        "Record elapsed time in milliseconds upon response or error.",
+        "Delegate persistence of the check record to the Database layer.",
+        "Return a JSON response containing status_code and response_time_ms.",
+        "Handle network errors and timeouts gracefully without crashing."
+      ],
+      "related_requirements": ["FR-1", "FR-4", "FR-5", "NFR-1", "NFR-2", "C-4"]
+    },
+    {
+      "id": "C-3",
+      "name": "History Handler",
+      "purpose": "Handle GET /history and GET /history/:id: retrieve check records from the Database layer and return them as JSON, returning 404 when a requested record does not exist.",
+      "responsibilities": [
+        "Handle GET /history by querying all check records from the Database layer and returning them as a JSON array.",
+        "Handle GET /history/:id by querying a single check record by integer ID from the Database layer.",
+        "Return HTTP 404 with an error message when the requested ID does not exist.",
+        "Return HTTP 400 when the :id path parameter is not a valid integer."
+      ],
+      "related_requirements": ["FR-2", "FR-3", "C-4"]
+    },
+    {
+      "id": "C-4",
+      "name": "Database Layer",
+      "purpose": "Encapsulate all SQLite interactions via better-sqlite3: initialize the database file and schema on startup, and provide synchronous insert and query operations for check records.",
+      "responsibilities": [
+        "Open or create the SQLite database file at a configured path.",
+        "Create the checks table if it does not already exist (id, url, status_code, response_time_ms, error, checked_at).",
+        "Provide a synchronous insertCheck function that persists a new check record and returns the generated id.",
+        "Provide a synchronous getAllChecks function that returns all records ordered by checked_at descending.",
+        "Provide a synchronous getCheckById function that returns a single record by integer id, or null if not found."
+      ],
+      "related_requirements": ["FR-2", "FR-3", "NFR-2", "C-3", "C-6"]
+    }
+  ],
+  "data_flows": [
+    {
+      "from": "C-1",
+      "to": "C-2",
+      "description": "HTTP Server routes POST /check requests to the Check Handler."
+    },
+    {
+      "from": "C-1",
+      "to": "C-3",
+      "description": "HTTP Server routes GET /history and GET /history/:id requests to the History Handler."
+    },
+    {
+      "from": "C-2",
+      "to": "C-4",
+      "description": "Check Handler calls insertCheck on the Database Layer to persist a completed check record (url, status_code, response_time_ms, error)."
+    },
+    {
+      "from": "C-3",
+      "to": "C-4",
+      "description": "History Handler calls getAllChecks or getCheckById on the Database Layer to retrieve stored records."
+    },
+    {
+      "from": "C-4",
+      "to": "C-2",
+      "description": "Database Layer returns the generated record id to the Check Handler after insert."
+    },
+    {
+      "from": "C-4",
+      "to": "C-3",
+      "description": "Database Layer returns check record(s) or null to the History Handler."
+    }
+  ],
+  "open_design_questions": [
+    "[DESIGN_DECISION] Should the SQLite database file path default to ./data/checks.db and be overridable via a DATABASE_PATH environment variable?",
+    "[DESIGN_DECISION] Should the server port default to 3000 and be overridable via a PORT environment variable?",
+    "[DESIGN_DECISION] Should POST /check follow HTTP redirects automatically, and what should the maximum redirect count be (suggested default: follow up to 5)?",
+    "[DESIGN_DECISION] What should the default outbound HTTP request timeout be for POST /check (suggested: 10 seconds)?",
+    "[CLARIFICATION] Should GET /history support any ordering or filtering options, or is reverse-chronological order sufficient for this iteration?"
+  ]
+}

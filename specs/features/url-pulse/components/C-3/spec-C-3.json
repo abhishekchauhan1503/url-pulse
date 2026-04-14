@@ -1,0 +1,91 @@
+{
+  "workflow": "component_spec",
+  "problem_id": "url-pulse",
+  "component_id": "C-3",
+  "component_name": "History Handler",
+  "scope_of_spec": "GET /history and GET /history/:id route handlers: query delegation to C-4 Database Layer, response formatting, 404 and 400 error handling.",
+  "overview": "The History Handler owns the two read endpoints for retrieving past check records. GET /history returns all stored check records in reverse-chronological order (most recent first). GET /history/:id returns the single record matching the given integer id, or 404 if it does not exist. Both handlers delegate all data access to C-4 (Database Layer) and are responsible only for request parsing, input validation, response formatting, and error responses. The component exports an Express Router mounted by C-1.",
+  "responsibilities": [
+    "Handle GET /history by calling C-4 getAllChecks() and returning the result array as a JSON response with HTTP 200.",
+    "Handle GET /history/:id by parsing req.params.id as an integer and calling C-4 getCheckById(id).",
+    "Return HTTP 400 with { error: 'id must be a positive integer' } when req.params.id is not a valid positive integer.",
+    "Return HTTP 404 with { error: 'Check not found' } when C-4 getCheckById returns null.",
+    "Return HTTP 200 with the record object when C-4 getCheckById returns a result.",
+    "Export the handler as an Express Router."
+  ],
+  "interfaces": {
+    "apis": [
+      {
+        "name": "GET /history",
+        "description": "Returns all stored check records ordered by checked_at descending.",
+        "method": "GET",
+        "path": "/history",
+        "request": {
+          "query_params": [],
+          "headers": [],
+          "body_schema": null
+        },
+        "response": {
+          "status_codes": [200],
+          "body_schema": "Array<{ id: number, url: string, status_code: number | null, response_time_ms: number, error: string | null, checked_at: string }> — may be an empty array if no checks have been recorded"
+        },
+        "related_requirements": ["FR-2"]
+      },
+      {
+        "name": "GET /history/:id",
+        "description": "Returns a single check record by integer id, or 404 if not found.",
+        "method": "GET",
+        "path": "/history/:id",
+        "request": {
+          "query_params": [],
+          "headers": [],
+          "body_schema": null
+        },
+        "response": {
+          "status_codes": [200, 400, 404],
+          "body_schema": "200: { id: number, url: string, status_code: number | null, response_time_ms: number, error: string | null, checked_at: string } | 400: { error: string } | 404: { error: string }"
+        },
+        "related_requirements": ["FR-3"]
+      }
+    ],
+    "events": [],
+    "data_models": [
+      {
+        "name": "CheckRecord",
+        "fields": {
+          "id": "number",
+          "url": "string",
+          "status_code": "number | null",
+          "response_time_ms": "number",
+          "error": "string | null",
+          "checked_at": "string (ISO-8601 UTC)"
+        }
+      }
+    ]
+  },
+  "behavior": [
+    "GET /history: call C-4 getAllChecks(); respond HTTP 200 with the returned array (which may be []).",
+    "GET /history/:id: parse req.params.id with parseInt(req.params.id, 10).",
+    "If parseInt result is NaN, or the parsed integer is less than 1, respond HTTP 400 { error: 'id must be a positive integer' }.",
+    "If parseInt result is a valid positive integer, call C-4 getCheckById(id).",
+    "If getCheckById returns null, respond HTTP 404 { error: 'Check not found' }.",
+    "If getCheckById returns a record, respond HTTP 200 with the record object."
+  ],
+  "edge_cases": [
+    "GET /history/:id where :id is '0' or a negative number: parseInt succeeds but the value is ≤ 0. The handler must return HTTP 400, not query the database.",
+    "GET /history/:id where :id is a float string (e.g., '1.5'): parseInt('1.5', 10) returns 1 (valid integer). The handler should proceed with id=1. This is acceptable — no special case needed.",
+    "GET /history when no checks have ever been stored: C-4 getAllChecks() returns []. The handler must return HTTP 200 with an empty array [], not a 404.",
+    "GET /history/:id where :id is a valid integer but no record exists (e.g., id=9999): C-4 getCheckById returns null. The handler must return HTTP 404.",
+    "GET /history/:id where :id contains non-numeric characters (e.g., 'abc'): parseInt returns NaN. Handler returns HTTP 400."
+  ],
+  "constraints_and_considerations": [
+    "This component contains zero business logic — it is a thin routing and formatting layer.",
+    "All data access is delegated to C-4; the handler must not perform any direct SQLite operations.",
+    "No pagination is implemented in this iteration. GET /history returns all records.",
+    "Records are returned in the order provided by C-4 getAllChecks() (reverse-chronological by checked_at).",
+    "The handler must not mutate or transform the fields returned by C-4 (e.g., must not reformat dates).",
+    "TypeScript strict mode: req.params.id is a string and must be explicitly parsed before use as an integer."
+  ],
+  "related_requirements": ["FR-2", "FR-3", "C-4"],
+  "spec_open_questions": []
+}

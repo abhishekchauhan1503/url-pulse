@@ -1,0 +1,90 @@
+{
+  "workflow": "tasks_from_spec",
+  "problem_id": "url-pulse",
+  "component_id": "C-4",
+  "tasks": [
+    {
+      "id": "C4-TASK-1",
+      "status": "todo",
+      "blocker_reason": null,
+      "title": "Implement database initialisation: open SQLite, enable WAL, create schema",
+      "description": "Create src/db.ts. On module load: resolve DB_PATH = process.env.DATABASE_PATH ?? './data/checks.db', call fs.mkdirSync(path.dirname(DB_PATH), { recursive: true }) to ensure the directory exists, open the database with new Database(DB_PATH), run db.pragma('journal_mode = WAL'), and execute CREATE TABLE IF NOT EXISTS checks (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, status_code INTEGER, response_time_ms REAL NOT NULL, error TEXT, checked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))). No functions exported yet.",
+      "area": "backend",
+      "priority": "P0",
+      "related_requirements": ["NFR-2", "C-3", "C-6"],
+      "related_spec_sections": ["responsibilities[0]", "responsibilities[1]", "responsibilities[2]", "responsibilities[3]", "interfaces.data_models[0]", "behavior[0]", "behavior[1]", "behavior[2]", "behavior[3]", "constraints_and_considerations[2]", "constraints_and_considerations[3]", "constraints_and_considerations[4]", "edge_cases[0]"],
+      "dependencies": [],
+      "verification_commands": [
+        "npx tsc --noEmit"
+      ],
+      "done_criteria": [
+        "src/db.ts exists",
+        "DATABASE_PATH env var is read with fallback to './data/checks.db'",
+        "fs.mkdirSync with recursive:true is called before Database() open",
+        "WAL mode pragma is applied",
+        "CREATE TABLE IF NOT EXISTS statement runs on import",
+        "Build/compile succeeds",
+        "Verification commands pass",
+        "Task artifacts updated",
+        "Changes committed with meaningful message",
+        "Working tree clean"
+      ],
+      "commit_message_template": "C4-TASK-1: implement SQLite database initialisation with WAL mode and schema creation"
+    },
+    {
+      "id": "C4-TASK-2",
+      "status": "todo",
+      "blocker_reason": null,
+      "title": "Implement and export insertCheck function",
+      "description": "In src/db.ts, prepare a reusable INSERT statement at module load time: INSERT INTO checks (url, status_code, response_time_ms, error) VALUES (?, ?, ?, ?). Export insertCheck(input: InsertCheckInput): CheckRow that runs the prepared statement, reads stmt.lastInsertRowid, fetches the full row by id, and returns it as a CheckRow. The function must correctly bind null for status_code and error when those fields are null.",
+      "area": "backend",
+      "priority": "P0",
+      "related_requirements": ["NFR-2", "FR-1"],
+      "related_spec_sections": ["responsibilities[4]", "behavior[4]", "interfaces.data_models[1]", "interfaces.data_models[2]", "constraints_and_considerations[0]", "constraints_and_considerations[1]", "edge_cases[1]"],
+      "dependencies": ["C4-TASK-1"],
+      "verification_commands": [
+        "npx tsc --noEmit"
+      ],
+      "done_criteria": [
+        "insertCheck is exported from src/db.ts",
+        "INSERT prepared statement is created at module load (not inside the function body)",
+        "null values for status_code and error are correctly bound",
+        "Returned CheckRow includes auto-generated id and checked_at from the database",
+        "Build/compile succeeds",
+        "Verification commands pass",
+        "Task artifacts updated",
+        "Changes committed with meaningful message",
+        "Working tree clean"
+      ],
+      "commit_message_template": "C4-TASK-2: implement and export insertCheck function with prepared statement"
+    },
+    {
+      "id": "C4-TASK-3",
+      "status": "todo",
+      "blocker_reason": null,
+      "title": "Implement and export getAllChecks and getCheckById functions",
+      "description": "In src/db.ts, prepare two reusable SELECT statements at module load time: 'SELECT * FROM checks ORDER BY checked_at DESC' and 'SELECT * FROM checks WHERE id = ?'. Export getAllChecks(): CheckRow[] that runs the first statement and returns all rows (empty array if none). Export getCheckById(id: number): CheckRow | null that runs the second statement and returns the row, or null if better-sqlite3 stmt.get() returns undefined.",
+      "area": "backend",
+      "priority": "P0",
+      "related_requirements": ["FR-2", "FR-3"],
+      "related_spec_sections": ["responsibilities[5]", "responsibilities[6]", "behavior[5]", "behavior[6]", "interfaces.data_models[2]", "constraints_and_considerations[0]", "constraints_and_considerations[1]", "edge_cases[2]", "edge_cases[3]"],
+      "dependencies": ["C4-TASK-1"],
+      "verification_commands": [
+        "npx tsc --noEmit"
+      ],
+      "done_criteria": [
+        "getAllChecks is exported and returns CheckRow[]",
+        "SELECT prepared statements are created at module load",
+        "getAllChecks returns [] when table is empty (not null/undefined)",
+        "getCheckById returns CheckRow when found",
+        "getCheckById returns null (not undefined) when not found",
+        "Build/compile succeeds",
+        "Verification commands pass",
+        "Task artifacts updated",
+        "Changes committed with meaningful message",
+        "Working tree clean"
+      ],
+      "commit_message_template": "C4-TASK-3: implement and export getAllChecks and getCheckById query functions"
+    }
+  ]
+}

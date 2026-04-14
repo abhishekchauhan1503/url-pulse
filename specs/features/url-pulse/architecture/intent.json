@@ -1,0 +1,48 @@
+{
+  "problem_id": "url-pulse",
+  "weighted_priorities": [
+    {
+      "attribute": "simplicity vs. feature richness",
+      "weight": 9,
+      "description": "The user explicitly requested 'keep it simple'. Minimal scope, no auth, no pagination, no background scheduling. Every design decision should prefer the simpler option."
+    },
+    {
+      "attribute": "correctness of measurement vs. performance",
+      "weight": 8,
+      "description": "Response time accuracy is a core product value (it is the primary output of POST /check). Correctness of the wall-clock measurement takes priority over micro-optimizing throughput."
+    },
+    {
+      "attribute": "synchronous persistence vs. async pipeline",
+      "weight": 7,
+      "description": "better-sqlite3 is synchronous by design; the architecture must embrace synchronous DB writes rather than introducing async queuing that would add complexity without benefit at this scale."
+    },
+    {
+      "attribute": "speed of delivery vs. extensibility",
+      "weight": 8,
+      "description": "This is an MVP. Avoid over-engineering for future requirements. Thin controllers, direct DB calls, no repository pattern overhead unless it naturally falls out of the structure."
+    },
+    {
+      "attribute": "local-only vs. distributed",
+      "weight": 10,
+      "description": "The system is strictly local: single process, single SQLite file, no external services. All design decisions must respect this constraint absolutely."
+    }
+  ],
+  "escalation_triggers": [
+    {
+      "condition": "A component design requires async SQLite access or introduces a queue between the HTTP handler and the database write.",
+      "justification": "better-sqlite3 is synchronous; introducing async patterns would contradict the chosen library and add unnecessary complexity. Human review needed before proceeding."
+    },
+    {
+      "condition": "Any component introduces an external runtime dependency beyond Node.js built-ins, Express, better-sqlite3, and a fetch/HTTP client.",
+      "justification": "The stack is explicitly constrained. Any deviation changes the dependency surface and must be approved."
+    },
+    {
+      "condition": "A task requires modifying the SQLite schema after data may already exist (i.e., a migration).",
+      "justification": "Schema migrations are out of scope for this iteration. If a spec change requires one, halt and escalate."
+    },
+    {
+      "condition": "The outbound HTTP request logic needs to handle authentication, cookies, or sessions on the target URL.",
+      "justification": "No such requirement exists. If discovered during implementation, it signals scope creep and requires user confirmation."
+    }
+  ]
+}
