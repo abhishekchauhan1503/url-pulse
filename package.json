@@ -1,0 +1,21 @@
+{
+  "name": "url-pulse",
+  "version": "1.0.0",
+  "description": "URL health check and history service",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.10",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.5"
+  }
+}

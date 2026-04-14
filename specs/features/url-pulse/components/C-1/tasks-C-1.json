@@ -5,7 +5,7 @@
   "tasks": [
     {
       "id": "C1-TASK-1",
-      "status": "todo",
+      "status": "done",
       "blocker_reason": null,
       "title": "Initialise Node.js + TypeScript project with Express",
       "description": "Create package.json with name url-pulse, scripts (build, start, dev), and dependencies: express, better-sqlite3. Create tsconfig.json with strict:true, target ES2022, module CommonJS, outDir dist, rootDir src. Install all dependencies. The project must compile with tsc --noEmit with zero errors on an empty src/index.ts stub.",
@@ -33,7 +33,7 @@
     },
     {
       "id": "C1-TASK-2",
-      "status": "todo",
+      "status": "in_progress",
       "blocker_reason": null,
       "title": "Implement Express app factory with middleware and error handlers",
       "description": "Create src/app.ts that constructs and exports the Express app. Register express.json() middleware first. Add a catch-all 404 handler that responds with { error: 'Not Found' } and HTTP 404. Add a global 4-argument error-handling middleware that reads err.status (defaulting to 500) and responds with { error: err.message }. Do NOT call app.listen() in this file — export the app instance only.",
