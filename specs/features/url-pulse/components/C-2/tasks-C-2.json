@@ -5,7 +5,7 @@
   "tasks": [
     {
       "id": "C2-TASK-1",
-      "status": "todo",
+      "status": "done",
       "blocker_reason": null,
       "title": "Implement URL validation logic for POST /check",
       "description": "Create src/checkHandler.ts. Implement input validation: reject requests where req.body.url is absent or not a string (HTTP 400 'url is required and must be a string'), reject URLs that fail the URL constructor (HTTP 400 'Invalid URL: <message>'), and reject URLs whose protocol is not http: or https: (HTTP 400 'URL must use http or https protocol'). Return a well-typed Express Router. No fetch or DB calls in this task.",
@@ -32,7 +32,7 @@
     },
     {
       "id": "C2-TASK-2",
-      "status": "todo",
+      "status": "in_progress",
       "blocker_reason": null,
       "title": "Implement outbound HTTP fetch with high-resolution timing",
       "description": "In src/checkHandler.ts, after URL validation passes: record startNs = process.hrtime.bigint(), call fetch(url, { signal: AbortSignal.timeout(10_000) }), record endNs after fetch resolves or rejects. Compute responseTimeMs = Math.round(Number(endNs - startNs) / 1_000_000 * 10) / 10 (1 decimal place). On success extract response.status as statusCode; on AbortError or other error set statusCode = null and capture err.message. This task does not persist to DB yet.",
