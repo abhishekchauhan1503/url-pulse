@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { insertCheck } from './db';
 
 const router = Router();
 
@@ -40,7 +41,14 @@ router.post('/check', async (req: Request, res: Response) => {
   const endNs = process.hrtime.bigint();
   const responseTimeMs = Math.round(Number(endNs - startNs) / 1_000_000 * 10) / 10;
 
-  // DB persistence and HTTP 200 response finalized in C2-TASK-3.
+  const row = insertCheck({
+    url,
+    status_code: statusCode,
+    response_time_ms: responseTimeMs,
+    error: errorMsg,
+  });
+
+  res.status(200).json(row);
 });
 
 export default router;

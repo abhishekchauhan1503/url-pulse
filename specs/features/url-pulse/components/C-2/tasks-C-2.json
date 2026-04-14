@@ -59,7 +59,7 @@
     },
     {
       "id": "C2-TASK-3",
-      "status": "in_progress",
+      "status": "done",
       "blocker_reason": null,
       "title": "Integrate DB persistence and finalise POST /check response",
       "description": "In src/checkHandler.ts, after timing and fetch, call C-4 insertCheck({ url, status_code: statusCode, response_time_ms: responseTimeMs, error: errorMsg ?? null }). Use the returned CheckRow (which includes id and checked_at) as the HTTP 200 response body. Ensure the handler never throws unhandled exceptions to Express.",
