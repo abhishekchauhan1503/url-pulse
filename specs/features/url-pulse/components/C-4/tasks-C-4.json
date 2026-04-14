@@ -33,7 +33,7 @@
     },
     {
       "id": "C4-TASK-2",
-      "status": "in_progress",
+      "status": "done",
       "blocker_reason": null,
       "title": "Implement and export insertCheck function",
       "description": "In src/db.ts, prepare a reusable INSERT statement at module load time: INSERT INTO checks (url, status_code, response_time_ms, error) VALUES (?, ?, ?, ?). Export insertCheck(input: InsertCheckInput): CheckRow that runs the prepared statement, reads stmt.lastInsertRowid, fetches the full row by id, and returns it as a CheckRow. The function must correctly bind null for status_code and error when those fields are null.",
@@ -60,7 +60,7 @@
     },
     {
       "id": "C4-TASK-3",
-      "status": "todo",
+      "status": "in_progress",
       "blocker_reason": null,
       "title": "Implement and export getAllChecks and getCheckById functions",
       "description": "In src/db.ts, prepare two reusable SELECT statements at module load time: 'SELECT * FROM checks ORDER BY checked_at DESC' and 'SELECT * FROM checks WHERE id = ?'. Export getAllChecks(): CheckRow[] that runs the first statement and returns all rows (empty array if none). Export getCheckById(id: number): CheckRow | null that runs the second statement and returns the row, or null if better-sqlite3 stmt.get() returns undefined.",

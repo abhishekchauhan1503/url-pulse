@@ -20,4 +20,34 @@ db.exec(`
   )
 `);
 
-export default db;
+export interface InsertCheckInput {
+  url: string;
+  status_code: number | null;
+  response_time_ms: number;
+  error: string | null;
+}
+
+export interface CheckRow {
+  id: number;
+  url: string;
+  status_code: number | null;
+  response_time_ms: number;
+  error: string | null;
+  checked_at: string;
+}
+
+const insertStmt = db.prepare(
+  'INSERT INTO checks (url, status_code, response_time_ms, error) VALUES (?, ?, ?, ?)'
+);
+
+const selectByIdStmt = db.prepare('SELECT * FROM checks WHERE id = ?');
+
+export function insertCheck(input: InsertCheckInput): CheckRow {
+  const result = insertStmt.run(
+    input.url,
+    input.status_code,
+    input.response_time_ms,
+    input.error
+  );
+  return selectByIdStmt.get(result.lastInsertRowid) as CheckRow;
+}
