@@ -61,7 +61,7 @@
     },
     {
       "id": "C1-TASK-3",
-      "status": "in_progress",
+      "status": "done",
       "blocker_reason": null,
       "title": "Implement server entry point with port binding and startup log",
       "description": "Create src/index.ts that imports the app from src/app.ts, reads PORT from process.env.PORT (parsing as integer, defaulting to 3000 if absent or non-integer), calls app.listen(port), and logs 'url-pulse listening on port <port>' to stdout. This file must NOT export anything — it is the process entry point only.",
