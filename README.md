@@ -21,18 +21,18 @@ Check a URL and persist the result.
 ```bash
 curl -X POST http://localhost:3000/check \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+  -d '{"url": "https://github.com"}'
 ```
 
 **Response (200):**
 ```json
 {
   "id": 1,
-  "url": "https://example.com",
+  "url": "https://github.com",
   "status_code": 200,
-  "response_time_ms": 142.3,
+  "response_time_ms": 84.8,
   "error": null,
-  "checked_at": "2026-04-13T10:00:00.000Z"
+  "checked_at": "2026-04-14T03:29:14.559Z"
 }
 ```
 
