@@ -5,7 +5,7 @@
   "tasks": [
     {
       "id": "C3-TASK-1",
-      "status": "todo",
+      "status": "done",
       "blocker_reason": null,
       "title": "Implement GET /history endpoint",
       "description": "Create src/historyHandler.ts and export an Express Router. Implement the GET /history route: call C-4 getAllChecks() and respond HTTP 200 with the returned array. The array may be empty — an empty array must return HTTP 200 [], not 404. No query parameters, filtering, or pagination.",
@@ -31,7 +31,7 @@
     },
     {
       "id": "C3-TASK-2",
-      "status": "todo",
+      "status": "in_progress",
       "blocker_reason": null,
       "title": "Implement GET /history/:id endpoint with validation and 404 handling",
       "description": "In src/historyHandler.ts, add the GET /history/:id route. Parse req.params.id with parseInt(req.params.id, 10). If the result is NaN or less than 1, respond HTTP 400 { error: 'id must be a positive integer' }. Otherwise call C-4 getCheckById(id): if null respond HTTP 404 { error: 'Check not found' }, otherwise respond HTTP 200 with the record object. Do not transform or reformat any fields.",
