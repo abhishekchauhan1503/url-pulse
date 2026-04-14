@@ -90,7 +90,7 @@
     },
     {
       "id": "C1-TASK-4",
-      "status": "blocked",
+      "status": "done",
       "blocker_reason": "C-2 (checkRouter) and C-3 (historyRouter) router files do not exist yet. All C-2 and C-3 tasks are still 'todo'. This task cannot be implemented until those components are complete and their router files are present in the repository.",
       "title": "Mount Check and History routers in app.ts",
       "description": "Once C-2 and C-3 routers exist, import them in src/app.ts and register them with app.use(). The Check Router handles POST /check and the History Router handles GET /history and GET /history/:id. This task should be executed after C2-TASK-* and C3-TASK-* are complete and their router files exist.",
@@ -98,7 +98,7 @@
       "priority": "P1",
       "related_requirements": ["FR-1", "FR-2", "FR-3"],
       "related_spec_sections": ["behavior[2]", "behavior[3]", "interfaces.apis[0]", "interfaces.apis[1]", "interfaces.apis[2]"],
-      "dependencies": ["C1-TASK-2"],
+      "dependencies": ["C1-TASK-2", "C2-TASK-3", "C3-TASK-2"],
       "verification_commands": [
         "npx tsc --noEmit"
       ],

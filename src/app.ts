@@ -1,4 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
+import checkRouter from './checkHandler';
+import historyRouter from './historyHandler';
 
 interface HttpError extends Error {
   status?: number;
@@ -7,6 +9,9 @@ interface HttpError extends Error {
 const app = express();
 
 app.use(express.json());
+
+app.use(checkRouter);
+app.use(historyRouter);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Not Found' });
