@@ -32,7 +32,7 @@
     },
     {
       "id": "C2-TASK-2",
-      "status": "in_progress",
+      "status": "done",
       "blocker_reason": null,
       "title": "Implement outbound HTTP fetch with high-resolution timing",
       "description": "In src/checkHandler.ts, after URL validation passes: record startNs = process.hrtime.bigint(), call fetch(url, { signal: AbortSignal.timeout(10_000) }), record endNs after fetch resolves or rejects. Compute responseTimeMs = Math.round(Number(endNs - startNs) / 1_000_000 * 10) / 10 (1 decimal place). On success extract response.status as statusCode; on AbortError or other error set statusCode = null and capture err.message. This task does not persist to DB yet.",
@@ -59,7 +59,7 @@
     },
     {
       "id": "C2-TASK-3",
-      "status": "todo",
+      "status": "in_progress",
       "blocker_reason": null,
       "title": "Integrate DB persistence and finalise POST /check response",
       "description": "In src/checkHandler.ts, after timing and fetch, call C-4 insertCheck({ url, status_code: statusCode, response_time_ms: responseTimeMs, error: errorMsg ?? null }). Use the returned CheckRow (which includes id and checked_at) as the HTTP 200 response body. Ensure the handler never throws unhandled exceptions to Express.",

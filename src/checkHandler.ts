@@ -24,7 +24,23 @@ router.post('/check', async (req: Request, res: Response) => {
     return;
   }
 
-  // Fetch, timing, and persistence handled in subsequent tasks.
+  const startNs = process.hrtime.bigint();
+
+  let statusCode: number | null;
+  let errorMsg: string | null = null;
+
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    statusCode = response.status;
+  } catch (err) {
+    statusCode = null;
+    errorMsg = err instanceof Error ? err.message : String(err);
+  }
+
+  const endNs = process.hrtime.bigint();
+  const responseTimeMs = Math.round(Number(endNs - startNs) / 1_000_000 * 10) / 10;
+
+  // DB persistence and HTTP 200 response finalized in C2-TASK-3.
 });
 
 export default router;
